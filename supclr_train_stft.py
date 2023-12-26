@@ -34,6 +34,7 @@ class SupCLR(sb.core.Brain):
 
         x1 = self.prepare_features(wavs1, lens, stage)
         x2 = self.prepare_features(wavs2, lens, stage)
+
         # Embeddings
         h1 = self.modules.embedding_model(x1)
         h2 = self.modules.embedding_model(x2)
