@@ -97,9 +97,9 @@ right_frames: 0
 deltas: False
 amp_to_db: False
 normalize: True
-win_length: 25
-hop_length: 10
-n_fft: !ref <win_length> * <sample_rate> // 1000
+  # win_length: 25
+  # hop_length: 10
+# n_fft: !ref <win_length> * <sample_rate> // 1000
 f_min: 0
 use_time_roll: False
 use_freq_shift: False
@@ -134,6 +134,22 @@ spec_domain_aug: !new:augmentation.TFAugmentation
     freq_shift: !ref <use_freq_shift>
     freq_shift_limit: !tuple (-10, 10)
 
+# pre-processing
+n_fft: 1024
+spec_mag_power: 0.5
+hop_length: 11.6099
+win_length: 23.2199
+compute_stft: !new:speechbrain.processing.features.STFT
+    n_fft: !ref <n_fft>
+    hop_length: !ref <hop_length>
+    win_length: !ref <win_length>
+    sample_rate: !ref <sample_rate>
+
+compute_fbank: !new:speechbrain.processing.features.Filterbank
+    n_mels: !ref <n_mels>
+    n_fft: !ref <n_fft>
+    sample_rate: !ref <sample_rate>
+    log_mel: False
 
 # Functions
 compute_features: !new:speechbrain.lobes.features.Fbank
@@ -163,7 +179,7 @@ mean_var_norm: !new:speechbrain.processing.features.InputNormalization
 # #     # dilations: [1, 2, 3, 1]
 # #     # attention_channels: 128
 # #     # lin_neurons: !ref <emb_dim>
-embedding_model: !new:models.pann.Cnn14
+embedding_model: !new:speechbrain.lobes.models.Cnn14.Cnn14
     mel_bins: !ref <n_mels>
     emb_dim: !ref <emb_dim>
     norm_type: !ref <emb_norm_type>
@@ -179,11 +195,13 @@ predictor: !new:models.modules.SimSiamPredictor
     hidden_size: !ref <emb_dim> // 4
     norm_type: !ref <proj_norm_type>
 
-classifier: !new:models.modules.Classifier
-    input_size: !ref <emb_dim>
-    output_size: !ref <n_classes>
+classifier: !new:torch.nn.Linear
+    in_features: !ref <emb_dim>
+    out_features: !ref <n_classes> 
 
 modules:
+    compute_stft: !ref <compute_stft>
+    compute_fbank: !ref <compute_fbank>
     compute_features: !ref <compute_features>
     embedding_model: !ref <embedding_model>
     classifier: !ref <classifier>
