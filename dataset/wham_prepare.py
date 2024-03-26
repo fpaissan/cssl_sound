@@ -61,6 +61,8 @@ def combine_batches(clean, noise_loader):
     elif noise.ndim == 1:
         noise = noise[None]
 
+
+    clean = clean[..., :64000]
     max_amplitude = torch.max(torch.abs(torch.cat([clean, noise], dim=0)))
     clean_l2 = (clean ** 2).sum(-1) ** 0.5
     noise_l2 = (noise ** 2).sum(-1) ** 0.5
