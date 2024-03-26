@@ -23,6 +23,8 @@ from dataset.cl_pipeline import (
 from schedulers import SimSiamCosineScheduler
 from cl_table_tools import compute_cl_statistics
 
+from dataset.wham_prepare import WHAMDataset, combine_batches
+
 import pdb
 
 
@@ -43,6 +45,10 @@ class SupSoundClassifier(sb.core.Brain):
 
     def prepare_features(self, wavs, lens, stage):
         # TODO: augmentation
+        if hasattr(self.hparams, 'add_wham_noise'):
+            if self.hparams.add_wham_noise:
+                wavs = combine_batches(wavs, iter(self.hparams.wham_dataset))
+
         feats = self.modules.compute_features(wavs)
         if stage == sb.Stage.TRAIN and self.hparams.spec_domain_aug is not None:
             if isinstance(self.hparams.spec_domain_aug, torchlibrosa.augmentation.SpecAugmentation):
