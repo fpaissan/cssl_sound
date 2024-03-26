@@ -34,6 +34,7 @@ replay_num_keep: 0
 wham_folder: !PLACEHOLDER
 wham_audio_folder: !ref <wham_folder>/tr
 wham_metadata: "metadata/wham_speechbrain.csv"
+add_wham_noise: True
 
 signal_length_s: 5
 wham_dataset: !new:dataset.wham_prepare.WHAMDataset
