@@ -49,21 +49,31 @@ class SupSoundClassifier(sb.core.Brain):
             if self.hparams.add_wham_noise:
                 wavs = combine_batches(wavs, iter(self.hparams.wham_dataset))
 
-        feats = self.modules.compute_features(wavs)
+        # feats = self.modules.compute_features(wavs)
+        # if self.hparams.amp_to_db:
+            # Amp2db = torchaudio.transforms.AmplitudeToDB(
+                # stype="power", top_db=80
+            # )  # try "magnitude" Vs "power"? db= 80, 50...
+            # feats = Amp2db(feats)
+# 
+        # # Normalization
+        # if self.hparams.normalize:
+            # feats = self.modules.mean_var_norm(feats, lens)
+
+        X_stft = self.modules.compute_stft(wavs)
+        X_stft_power = sb.processing.features.spectral_magnitude(
+            X_stft, power=self.hparams.spec_mag_power
+        )
+
+        net_input = torch.log1p(X_stft_power)
+        mel = self.hparams.compute_fbank(X_stft_power)
+        feats = torch.log1p(mel)
+
         if stage == sb.Stage.TRAIN and self.hparams.spec_domain_aug is not None:
             if isinstance(self.hparams.spec_domain_aug, torchlibrosa.augmentation.SpecAugmentation):
                 feats = self.hparams.spec_domain_aug(feats)
             else:
                 feats = self.hparams.spec_domain_aug(feats, lens)
-        if self.hparams.amp_to_db:
-            Amp2db = torchaudio.transforms.AmplitudeToDB(
-                stype="power", top_db=80
-            )  # try "magnitude" Vs "power"? db= 80, 50...
-            feats = Amp2db(feats)
-
-        # Normalization
-        if self.hparams.normalize:
-            feats = self.modules.mean_var_norm(feats, lens)
 
         return feats
 
